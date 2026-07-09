@@ -1,0 +1,129 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# ----------------------------
+# Load Dataset
+# ----------------------------
+df = pd.read_excel("dataset.xlsx") 
+
+df["Order_Date"] = pd.to_datetime(df["Order_Date"])
+
+st.set_page_config(page_title="Sales Dashboard", layout="wide")
+
+st.title("📊 Sales Dashboard")
+
+# ----------------------------
+# Sidebar Filters
+# ----------------------------
+st.sidebar.header("Filters")
+
+city = st.sidebar.multiselect(
+    "Select City",
+    options=df["City"].unique(),
+    default=df["City"].unique()
+)
+
+category = st.sidebar.multiselect(
+    "Select Category",
+    options=df["Category"].unique(),
+    default=df["Category"].unique()
+)
+
+filtered_df = df[
+    (df["City"].isin(city)) &
+    (df["Category"].isin(category))
+]
+
+# ----------------------------
+# KPI Cards
+# ----------------------------
+total_sales = filtered_df["Total_Sales"].sum()
+total_orders = filtered_df["Order_ID"].count()
+total_customers = filtered_df["Customer_ID"].nunique()
+avg_sales = filtered_df["Total_Sales"].mean()
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric("💰 Total Sales", f"₹{total_sales:,.2f}")
+col2.metric("🛒 Total Orders", total_orders)
+col3.metric("👥 Customers", total_customers)
+col4.metric("📈 Avg Sales", f"₹{avg_sales:,.2f}")
+
+# ----------------------------
+# Sales by Category
+# ----------------------------
+fig1 = px.bar(
+    filtered_df.groupby("Category", as_index=False)["Total_Sales"].sum(),
+    x="Category",
+    y="Total_Sales",
+    title="Sales by Category"
+)
+
+st.plotly_chart(fig1, use_container_width=True)
+ 
+monthly_sales = (
+    filtered_df.groupby(filtered_df["Order_Date"].dt.to_period("M"))["Total_Sales"]
+    .sum()
+    .reset_index()
+)
+
+monthly_sales["Order_Date"] = monthly_sales["Order_Date"].astype(str)
+
+fig3 = px.line(
+    monthly_sales,
+    x="Order_Date",
+    y="Total_Sales",
+    title="Monthly Sales Trend",
+    markers=True
+)
+
+st.plotly_chart(fig3, use_container_width=True)
+
+product_sales = (
+    filtered_df.groupby("Product")["Quantity"]
+    .sum()
+    .reset_index()
+    .sort_values(by="Quantity", ascending=False)
+)
+
+fig4 = px.bar(
+    product_sales,
+    x="Product",
+    y="Quantity",
+    title="Top Selling Products"
+)
+
+st.plotly_chart(fig4, use_container_width=True)
+
+customer_sales = (
+    filtered_df.groupby("Customer_Name")["Total_Sales"]
+    .sum()
+    .reset_index()
+)
+
+customer_sales["Segment"] = customer_sales["Total_Sales"].apply(
+    lambda x: "High Value" if x > 200000 else (
+        "Medium Value" if x > 100000 else "Low Value"
+    )
+)
+
+fig5 = px.pie(
+    customer_sales,
+    names="Segment",
+    title="Customer Segmentation"
+)
+
+st.plotly_chart(fig5, use_container_width=True)
+
+# ----------------------------
+# Sales by City
+# ----------------------------
+fig2 = px.pie(
+    filtered_df,
+    names="City",
+    values="Total_Sales",
+    title="Sales by City"
+)
+
+st.plotly_chart(fig2, use_container_width=True)

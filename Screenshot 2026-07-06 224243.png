@@ -1,0 +1,35 @@
+# Sales Data Deep-Dive Analysis & Interactive Dashboard
+
+## Project Overview
+This project analyzes a sales dataset using Python and presents insights through an interactive Streamlit dashboard.
+
+## Tools Used
+- Python
+- Pandas
+- Streamlit
+- Plotly
+- OpenPyXL
+
+## Features
+- KPI Cards
+- Sales by Category
+- Sales by City
+- Monthly Sales Trend
+- Top Selling Products
+- Customer Segmentation
+- Interactive Filters
+
+## KPIs
+- Total Sales
+- Total Orders
+- Total Customers
+- Average Sales
+
+## Deep-Dive Analysis
+Customer Segmentation was performed by grouping customers into High Value, Medium Value, and Low Value segments based on total sales.
+
+## How to Run
+
+```bash
+python -m streamlit run app.py
+```
